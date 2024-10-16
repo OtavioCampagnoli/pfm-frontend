@@ -1,0 +1,159 @@
+<p-toast></p-toast>
+<p-confirmDialog></p-confirmDialog>
+<div class="ui-fluid">
+  <div class="grid">
+      <div class="col-12 lg:col-5">
+          <div class="card no-margin">
+              <form #formSearch="ngForm" (ngSubmit)="search($event)">
+                  <h4>Busca de Transação</h4>
+                  <div class="p-fluid grid form-group">
+                      <div class="field col-4">
+                          <label for="searchByDescription" class="formTitle">Descrição
+                          </label>
+                          <div class="input-group-clear">
+                              <input id="searchByDescription" type="text" pInputText placeholder="Busque pelo Descrição"
+                                  [(ngModel)]="modelSearch.description" name="searchByDescription" />
+                          </div>
+                      </div>
+                      <div class="field col-4">
+                          <label for="searchByAmount" class="formTitle">Valor
+                          </label>
+                          <div class="input-group-clear">
+                            <p-inputNumber id="searchByAmount" [(ngModel)]="modelSearch.amount" mode="currency" currency="BRL" locale="pt-BR" name="searchByAmount"></p-inputNumber>
+                          </div>
+                      </div>
+                      <div class="field col-4">
+                          <label for="searchByType" class="formTitle">Tipo <span class="text-danger">*</span></label>
+                          <p-dropdown [options]="this.transactionTypes" [filter]="true" [autoDisplayFirst]="false"
+                              [(ngModel)]="modelSearch.type" name="searchByType" optionLabel="label"
+                              [showClear]="false" optionValue="value" placeholder="Selecione um Tipo" class="w-full"
+                              ></p-dropdown>
+                      </div>
+                      <div class="field col-4">
+                        <label for="searchByCategory" class="formTitle">Categoria <span class="text-danger">*</span></label>
+                        <p-dropdown [options]="this.transactionCategories" [filter]="true" [autoDisplayFirst]="false"
+                            [(ngModel)]="modelSearch.type" name="searchByCategory" optionLabel="label"
+                            [showClear]="false" optionValue="value" placeholder="Selecione uma Categoria" class="w-full"
+                            ></p-dropdown>
+                    </div>
+                      <div class="field col-4">
+                          <label for="searchByDate" class="formTitle">Data Inicial</label>
+                          <div class="input-group-clear">
+                            <p-calendar id="searchByDate" name="searchByDate" [(ngModel)]="modelSearch.date" [dateFormat]="'dd/mm/yy'"></p-calendar>
+                          </div>
+                      </div>
+                      <div class="field col-4">
+                          <label for="searchByDateEnd" class="formTitle">Data Final</label>
+                          <div class="input-group-clear">
+                            <p-calendar id="searchByDateEnd" name="searchByDateEnd" [(ngModel)]="modelSearch.dateEnd" [dateFormat]="'dd/mm/yy'"></p-calendar>
+                          </div>
+                      </div>
+                      <div class="md:col-4 pt-3 button-inline">
+                          <button type="submit" label="Buscar" icon="pi pi-search" class="p-element p-button p-component mr-4"
+                              pButton></button>
+                      </div>
+                      <div class="md:col-4 pt-3 button-inline">
+                          <button type="button" (click)="resetSearchForm()" label="Limpar" icon="pi pi-refresh" class="p-button-secondary p-button p-component mr-3"
+                              pButton></button>
+                      </div>
+                      <div class="col-12 md:col-12">
+                          <p-table #dt [columns]="cols" [value]="transactionList" dataKey="id"
+                              [style]="{'margin-bottom':'20px'}" [responsive]="true" selectionMode="single"
+                              [(selection)]="modelRegister" (onRowSelect)="edit($event)"
+                              (onRowUnselect)="resetformRegister()" [rows]="10" [showCurrentPageReport]="false"
+                              [paginator]="true" [scrollable]="true" [resizableColumns]="true">
+                              <ng-template pTemplate="header" let-columns>
+                                  <tr>
+                                      <th *ngFor="let col of columns" [pSortableColumn]="col.field">
+                                          {{col.header}}
+                                          <p-sortIcon [field]="col.field"></p-sortIcon>
+                                      </th>
+                                  </tr>
+                              </ng-template>
+                              <ng-template pTemplate="body" let-rowData let-columns="columns">
+                                  <tr [pSelectableRow]="rowData">
+                                      <td>
+                                          {{rowData.description}}
+                                      </td>
+                                      <td>
+                                          R$ {{rowData.amount}}
+                                      </td>
+                                      <td>
+                                          {{translateCategory(rowData.category)}}
+                                      </td>
+                                      <td>
+                                         {{translateType(rowData.type)}}
+                                      </td>
+                                      <td>
+                                          {{rowData.date | date : 'dd/MM/yyyy' }}
+                                      </td>
+                                      <td>
+                                        {{rowData.createdAt | date : 'dd/MM/yyyy HH:mm' }}
+                                    </td>
+                                  </tr>
+                              </ng-template>
+                              <ng-template pTemplate="emptymessage">
+                                  <tr>
+                                      <td colspan="8" class="justify-content-center">Sem registros encontrados</td>
+                                  </tr>
+                              </ng-template>
+                          </p-table>
+                      </div>
+                  </div>
+              </form>
+          </div>
+      </div>
+      <div class="col-12 lg:col-7">
+          <div class="card no-margin">
+              <form #formRegister="ngForm" (ngSubmit)="save()" novalidate>
+                  <h4>Cadastro de Transação</h4>
+                  <div class="p-fluid p-formgrid grid">
+                      <div class="field col-12 md:col-4">
+                          <label for="registerDescription" class="formTitle">Descrição <span class="text-danger">*</span></label>
+                          <input id="registerDescription" type="text" pInputText [(ngModel)]="modelRegister.description"
+                              name="registerDescription" required autocomplete="off" maxlength="50" />
+                      </div>
+                      <div class="field col-12 md:col-4 field">
+                          <label for="registerAmount" class="formTitle">Valor <span class="text-danger">*</span></label>
+                          <p-inputNumber id="registerAmount" name="registerAmount" [(ngModel)]="modelRegister.amount" mode="currency" currency="BRL" locale="pt-BR"></p-inputNumber>
+                      </div>
+                      <div class="field col-12 md:col-4">
+                          <label for="registerType" class="formTitle">Tipo <span class="text-danger">*</span></label>
+                          <p-dropdown [options]="transactionTypes" [filter]="true" [autoDisplayFirst]="false"
+                              [(ngModel)]="modelRegister.type" name="registerType" optionLabel="label"
+                              [showClear]="false" optionValue="value" [required]="true" placeholder="Selecione um Tipo" class="w-full"
+                              ></p-dropdown>
+                      </div>
+                      <div class="field col-12 md:col-4">
+                        <label for="registerCategory" class="formTitle">Categoria <span class="text-danger">*</span></label>
+                        <p-dropdown [options]="transactionCategories" [filter]="true" [autoDisplayFirst]="false"
+                            [(ngModel)]="modelRegister.category" name="registerCategory" optionLabel="label"
+                            [showClear]="false" optionValue="value" [required]="true" placeholder="Selecione uma Categoria" class="w-full"
+                            placeholder=""
+                            ></p-dropdown>
+                      </div>
+                      <div class="col-12 md:col-4 field">
+                        <label for="registerDate" class="formTitle">Data <span class="text-danger">*</span></label>
+                        <p-calendar id="registerDate" name="registerDate" [(ngModel)]="modelRegister.date" [dateFormat]="'dd/mm/yy'" [required]="true"></p-calendar>
+                    </div>
+                  </div>
+
+                  <div class="p-fluid grid form-group">
+                      <div class="col-12 flex flex-row justify-content-end py-0">
+                          <button type="button" label="Cancelar" icon="pi pi-ban"
+                              class="p-button-outlined p-button-light mr-3 md:w-10rem" *ngIf="modelRegister.id"
+                              pButton (click)="resetformRegister()"></button>
+                          <button type="button" label="Excluir" icon="pi pi-trash"
+                              class="p-button-outlined p-button-danger mr-3 md:w-10rem" *ngIf="modelRegister.id"
+                              pButton (click)="remove(modelRegister)"></button>
+                          <button type="button" label="Novo" icon="pi pi-file" pButton
+                              class="p-button-outlined p-button-secondary mr-3 md:w-10rem"
+                              (click)="resetformRegister()"></button>
+                          <button type="submit" label="Salvar" icon="pi pi-save" pButton class="md:w-10rem"
+                              [disabled]="formRegister.invalid"></button>
+                      </div>
+                  </div>
+              </form>
+          </div>
+      </div>
+  </div>
