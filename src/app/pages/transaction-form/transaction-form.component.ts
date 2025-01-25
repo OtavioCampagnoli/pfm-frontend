@@ -1,15 +1,17 @@
+import { ClassifierService } from './../../shared/service/classifier.service';
 import { NgForm } from '@angular/forms';
 import { Component, OnInit, ViewChild } from '@angular/core';
 
 import { first } from 'rxjs/operators';
 
-import { ConfirmationService, MessageService, MenuItem } from 'primeng/api';
+import { ConfirmationService, MessageService } from 'primeng/api';
 
 import { Transaction } from 'src/app/shared/model/transaction.model';
 
-import { TransactionType, TransactionTypeLabelMap } from 'src/app/shared/enum/transactionType.enum';
-import { TransactionCategory } from 'src/app/shared/enum/transactionCategory.enum';
 import { TransactionService } from 'src/app/shared/service/transaction.service';
+import { Table } from 'primeng/table';
+import { Classifier } from 'src/app/shared/model/classifier.model';
+import { error } from 'console';
 
 
 @Component({
@@ -23,7 +25,8 @@ export class TransactionFormComponent implements OnInit {
 
   constructor(private transactionService: TransactionService,
     private messageService: MessageService,
-    private confirmationService: ConfirmationService
+    private confirmationService: ConfirmationService,
+    private classifierService: ClassifierService
   ) { }
 
   loading = false;
@@ -36,40 +39,28 @@ export class TransactionFormComponent implements OnInit {
 
   modelSearch: Transaction = new Transaction();
 
-  transactionTypes: { label: string, value: string }[] = [];
+  transactionTypes: Classifier[] = [];
 
-  transactionCategories: { label: string, value: string }[] = [];
+  transactionCategories: Classifier[] = [];
 
   cols: any[] = [];
 
   @ViewChild('formRegister', { static: false }) formRegister: NgForm | undefined;
-  @ViewChild('dt', { static: false }) dt: any;
+  @ViewChild('dt', { static: false }) dt?: Table;
 
   ngOnInit(): void {
 
     this.cols = [
       { field: 'description', header: 'Descrição' },
       { field: 'amount', header: 'Valor' },
-      { field: 'category', header: 'Categoria' },
-      { field: 'type', header: 'Tipo' },
+      { field: 'categoryCla', header: 'Categoria' },
+      { field: 'typeCla', header: 'Tipo' },
       { field: 'date', header: 'Data' },
       { field: 'createdAt', header: 'Criado em' }
     ];
 
-    this.transactionTypes = [
-      { label: 'Receita', value: 'INCOME' },
-      { label: 'Despesa', value: 'EXPENSE' }
-    ];
-
-    this.transactionCategories = [
-      { label: 'Alimentação', value: 'FOOD' },
-      { label: 'Transporte', value: 'TRANSPORT' },
-      { label: 'Salário', value: 'SALARY' },
-      { label: 'Entretenimento', value: 'ENTERTAINMENT' },
-      { label: 'Saúde', value: 'HEALTH' },
-      { label: 'Outro', value: 'OTHER' }
-    ];
-
+    this.loadTransactionsTypes();
+    this.loadTransactionsCategories();
     this.resetSearchForm();
     this.resetformRegister();
   }
@@ -82,6 +73,21 @@ export class TransactionFormComponent implements OnInit {
       });
   }
 
+  loadTransactionsTypes() {
+    this.classifierService.listAllByType("TRANSACTION_TYPE").subscribe(data => {
+        this.transactionTypes = data
+    }, (error) => {
+      console.log(error);
+    })
+  }
+
+  loadTransactionsCategories() {
+    this.classifierService.listAllByType("TRANSACTION_CATEGORY").subscribe(data => {
+        this.transactionCategories = data
+    }, (error) => {
+      console.log(error);
+    })
+  }
   resetSearchForm() {
       this.loadTransactions();
       this.modelSearch =  new Transaction();

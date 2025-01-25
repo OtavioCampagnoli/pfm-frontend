@@ -25,14 +25,14 @@
                       <div class="field col-4">
                           <label for="searchByType" class="formTitle">Tipo <span class="text-danger">*</span></label>
                           <p-dropdown [options]="this.transactionTypes" [filter]="true" [autoDisplayFirst]="false"
-                              [(ngModel)]="modelSearch.type" name="searchByType" optionLabel="label"
+                              [(ngModel)]="modelSearch.typeCla" name="searchByType" optionLabel="label"
                               [showClear]="false" optionValue="value" placeholder="Selecione um Tipo" class="w-full"
                               ></p-dropdown>
                       </div>
                       <div class="field col-4">
                         <label for="searchByCategory" class="formTitle">Categoria <span class="text-danger">*</span></label>
                         <p-dropdown [options]="this.transactionCategories" [filter]="true" [autoDisplayFirst]="false"
-                            [(ngModel)]="modelSearch.type" name="searchByCategory" optionLabel="label"
+                            [(ngModel)]="modelSearch.categoryCla" name="searchByCategory" optionLabel="label"
                             [showClear]="false" optionValue="value" placeholder="Selecione uma Categoria" class="w-full"
                             ></p-dropdown>
                     </div>
@@ -79,10 +79,10 @@
                                           R$ {{rowData.amount}}
                                       </td>
                                       <td>
-                                          {{translateCategory(rowData.category)}}
+                                          {{rowData.categoryCla}}
                                       </td>
                                       <td>
-                                         {{translateType(rowData.type)}}
+                                         {{(rowData.type)}}
                                       </td>
                                       <td>
                                           {{rowData.date | date : 'dd/MM/yyyy' }}
@@ -120,14 +120,14 @@
                       <div class="field col-12 md:col-4">
                           <label for="registerType" class="formTitle">Tipo <span class="text-danger">*</span></label>
                           <p-dropdown [options]="transactionTypes" [filter]="true" [autoDisplayFirst]="false"
-                              [(ngModel)]="modelRegister.type" name="registerType" optionLabel="label"
+                              [(ngModel)]="modelRegister.typeCla" name="registerType" optionLabel="label"
                               [showClear]="false" optionValue="value" [required]="true" placeholder="Selecione um Tipo" class="w-full"
                               ></p-dropdown>
                       </div>
                       <div class="field col-12 md:col-4">
                         <label for="registerCategory" class="formTitle">Categoria <span class="text-danger">*</span></label>
                         <p-dropdown [options]="transactionCategories" [filter]="true" [autoDisplayFirst]="false"
-                            [(ngModel)]="modelRegister.category" name="registerCategory" optionLabel="label"
+                            [(ngModel)]="modelRegister.categoryCla" name="registerCategory" optionLabel="label"
                             [showClear]="false" optionValue="value" [required]="true" placeholder="Selecione uma Categoria" class="w-full"
                             placeholder=""
                             ></p-dropdown>

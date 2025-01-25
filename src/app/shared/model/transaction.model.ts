@@ -1,5 +1,4 @@
-import { TransactionCategory } from "../enum/transactionCategory.enum";
-import { TransactionType } from "../enum/transactionType.enum";
+import { Classifier } from "./classifier.model";
 
 
 export class Transaction {
@@ -8,8 +7,8 @@ export class Transaction {
   amount?: number;
   date?: Date;
   dateEnd?: Date;
-  type?: TransactionType;
-  category?: TransactionCategory;
+  typeCla?: Classifier;
+  categoryCla?: Classifier;
   createdAt?: Date;
   createdAtEnd?: Date;
   updatedAt?: Date;
