@@ -11,8 +11,6 @@ import { Transaction } from 'src/app/shared/model/transaction.model';
 import { TransactionService } from 'src/app/shared/service/transaction.service';
 import { Table } from 'primeng/table';
 import { Classifier } from 'src/app/shared/model/classifier.model';
-import { error } from 'console';
-
 
 @Component({
   selector: 'app-transaction-form',
@@ -62,30 +60,31 @@ export class TransactionFormComponent implements OnInit {
     this.loadTransactionsTypes();
     this.loadTransactionsCategories();
     this.resetSearchForm();
-    this.resetformRegister();
+    this.resetFormRegister();
   }
 
   loadTransactions() {
-      this.transactionService.listAll().pipe(first()).subscribe(data => {
-          this.transactionList = data;
-      }, error => {
-          this.messageService.add({severity: 'error', summary: 'Erro', detail: error });
-      });
+      this.transactionService.listAll().subscribe({
+        next: (v) => this.transactionList = v,
+        error: (e) => this.messageService.add({severity: 'error', summary: 'Erro', detail: e }),
+        complete: () => console.log('complete')
+      })
   }
 
   loadTransactionsTypes() {
-    this.classifierService.listAllByType("TRANSACTION_TYPE").subscribe(data => {
-        this.transactionTypes = data
-    }, (error) => {
-      console.log(error);
+    this.classifierService.listAllByType("TRANSACTION_TYPE").subscribe({
+      next: (v) => this.transactionTypes = v,
+      error: (e) => this.messageService.add({severity: 'error', summary: 'Erro', detail: e }),
+      complete: () => console.log('complete')
+
     })
   }
 
   loadTransactionsCategories() {
-    this.classifierService.listAllByType("TRANSACTION_CATEGORY").subscribe(data => {
-        this.transactionCategories = data
-    }, (error) => {
-      console.log(error);
+    this.classifierService.listAllByType("TRANSACTION_CATEGORY").subscribe({
+      next: (v) => this.transactionCategories = v,
+      error: (e) => console.error(e),
+      complete: () => console.log('complete')
     })
   }
   resetSearchForm() {
@@ -104,7 +103,7 @@ export class TransactionFormComponent implements OnInit {
 
   edit(event: any) {
       let menu = event.data;
-      this.resetformRegister();
+      this.resetFormRegister();
       this.isEdit = true;
 
       this.transactionService.getById(menu.id).pipe(first()).subscribe(data => {
@@ -115,41 +114,63 @@ export class TransactionFormComponent implements OnInit {
   }
 
   remove(transaction: Transaction) {
-    debugger
       this.confirmationService.confirm({
           message: `Deseja remover ${transaction.description}?`,
           header: 'Excluir registro',
           acceptLabel: 'Confirmar',
           rejectLabel: 'Cancelar',
           accept: () => {
-              this.transactionService.delete(transaction.id).pipe(first()).subscribe(data => {
-                  if (data) {
-                      this.messageService.add({ severity: 'info', summary: 'Removido com sucesso', detail: 'Registro removido com sucesso!' });
-                      this.resetSearchForm();
-                      this.resetformRegister();
-                  }
-              }, error => {
-                  this.messageService.add({ key: 'tst', severity: 'error', summary: 'Erro', detail: error });
-              });
+              this.delete(transaction);
           }
       });
   }
 
-  save() {
-      this.transactionService.save(this.modelRegister).pipe(first()).subscribe(data => {
-          this.messageService.add({ severity: 'success', summary: 'Salvo com sucesso', detail: `Registro adicionado com sucesso!` });
-          this.resetSearchForm();
-          this.resetformRegister();
-      }, error => {
-          this.messageService.add({ severity: 'error', summary: 'Erro', detail: error });
-      });
+  delete(transaction: Transaction) {
+    this.transactionService.delete(transaction.id).subscribe({
+      next: (v) => {
+        this.messageService.add({severity:'success', summary: 'Removido com sucesso', detail: 'Transação removida com sucesso.'})
+        this.resetFormRegisterAndLoadTransactions();
+      },
+      error: (e) => this.messageService.add({severity:'error', summary: 'Erro ao remover', detail: 'Ocorreu um erro ao remover a transação.'}),
+      complete: () => console.log("delete complete")
+    })
   }
 
-  resetformRegister() {
+  saveOrUpdate() {
+      (this.modelRegister && this.modelRegister.id) ? this.update() : this.save();
+  }
+
+  save() {
+      this.transactionService.save(this.modelRegister).subscribe({
+        next: (v) => {
+          this.messageService.add({severity: 'success', summary: "Salvo com sucesso", detail: `Transação criada com sucesso.`})
+          this.resetFormRegisterAndLoadTransactions();
+        },
+        error: (e) => this.messageService.add({severity: 'error', summary: "Erro ao salvar", detail: `Ocorreu um erro ao criar a transação.` }),
+        complete: () => console.log("save complete")
+      })
+  }
+
+  update(){
+      this.transactionService.update(this.modelRegister).subscribe({
+        next: (v) => {
+          this.messageService.add({severity: 'success', summary: "Atualizado com sucesso", detail: `Transação atualizada com sucesso.`})
+          this.resetFormRegisterAndLoadTransactions();
+        },
+        error: (e) => this.messageService.add({severity: 'error', summary: "Erro ao salvar", detail: `Ocorreu um erro ao atualizar a transação.` }),
+        complete: () => console.log("update complete")
+      })
+  }
+  resetFormRegister() {
       this.modelRegister = new Transaction();
       this.isEdit = false;
       this.isProduct = false;
       this.formRegister && this.formRegister.reset();
+  }
+
+  resetFormRegisterAndLoadTransactions(){
+    this.loadTransactions();
+    this.resetFormRegister();
   }
 
 }

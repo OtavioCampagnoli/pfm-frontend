@@ -60,7 +60,7 @@
                           <p-table #dt [columns]="cols" [value]="transactionList" dataKey="id"
                               [style]="{'margin-bottom':'20px'}" [responsive]="true" selectionMode="single"
                               [(selection)]="modelRegister" (onRowSelect)="edit($event)"
-                              (onRowUnselect)="resetformRegister()" [rows]="10" [showCurrentPageReport]="false"
+                              (onRowUnselect)="resetFormRegister()" [rows]="10" [showCurrentPageReport]="false"
                               [paginator]="true" [scrollable]="true" [resizableColumns]="true">
                               <ng-template pTemplate="header" let-columns>
                                   <tr>
@@ -79,16 +79,16 @@
                                           R$ {{rowData.amount}}
                                       </td>
                                       <td>
-                                          {{rowData.categoryCla}}
+                                          {{rowData.categoryCla.label}}
                                       </td>
                                       <td>
-                                         {{(rowData.type)}}
+                                          {{(rowData.typeCla.label)}}
                                       </td>
                                       <td>
                                           {{rowData.date | date : 'dd/MM/yyyy' }}
                                       </td>
                                       <td>
-                                        {{rowData.createdAt | date : 'dd/MM/yyyy HH:mm' }}
+                                        {{rowData.createdAt | date : 'dd/MM/yyyy HH:mm'}}
                                     </td>
                                   </tr>
                               </ng-template>
@@ -105,7 +105,7 @@
       </div>
       <div class="col-12 lg:col-7">
           <div class="card no-margin">
-              <form #formRegister="ngForm" (ngSubmit)="save()" novalidate>
+              <form #formRegister="ngForm" (ngSubmit)="saveOrUpdate()" novalidate>
                   <h4>Cadastro de Transação</h4>
                   <div class="p-fluid p-formgrid grid">
                       <div class="field col-12 md:col-4">
@@ -119,16 +119,16 @@
                       </div>
                       <div class="field col-12 md:col-4">
                           <label for="registerType" class="formTitle">Tipo <span class="text-danger">*</span></label>
-                          <p-dropdown [options]="transactionTypes" [filter]="true" [autoDisplayFirst]="false"
+                          <p-dropdown [options]="transactionTypes" dataKey="id" [filter]="true" [autoDisplayFirst]="false"
                               [(ngModel)]="modelRegister.typeCla" name="registerType" optionLabel="label"
-                              [showClear]="false" optionValue="value" [required]="true" placeholder="Selecione um Tipo" class="w-full"
+                              [showClear]="false" [required]="true" placeholder="Selecione um Tipo" class="w-full"
                               ></p-dropdown>
                       </div>
                       <div class="field col-12 md:col-4">
                         <label for="registerCategory" class="formTitle">Categoria <span class="text-danger">*</span></label>
-                        <p-dropdown [options]="transactionCategories" [filter]="true" [autoDisplayFirst]="false"
+                        <p-dropdown [options]="transactionCategories" dataKey="id" [filter]="true" [autoDisplayFirst]="false"
                             [(ngModel)]="modelRegister.categoryCla" name="registerCategory" optionLabel="label"
-                            [showClear]="false" optionValue="value" [required]="true" placeholder="Selecione uma Categoria" class="w-full"
+                            [showClear]="false" [required]="true" placeholder="Selecione uma Categoria" class="w-full"
                             placeholder=""
                             ></p-dropdown>
                       </div>
@@ -142,13 +142,13 @@
                       <div class="col-12 flex flex-row justify-content-end py-0">
                           <button type="button" label="Cancelar" icon="pi pi-ban"
                               class="p-button-outlined p-button-light mr-3 md:w-10rem" *ngIf="modelRegister.id"
-                              pButton (click)="resetformRegister()"></button>
+                              pButton (click)="resetFormRegister()"></button>
                           <button type="button" label="Excluir" icon="pi pi-trash"
                               class="p-button-outlined p-button-danger mr-3 md:w-10rem" *ngIf="modelRegister.id"
                               pButton (click)="remove(modelRegister)"></button>
                           <button type="button" label="Novo" icon="pi pi-file" pButton
                               class="p-button-outlined p-button-secondary mr-3 md:w-10rem"
-                              (click)="resetformRegister()"></button>
+                              (click)="resetFormRegister()"></button>
                           <button type="submit" label="Salvar" icon="pi pi-save" pButton class="md:w-10rem"
                               [disabled]="formRegister.invalid"></button>
                       </div>

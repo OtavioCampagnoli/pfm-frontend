@@ -15,23 +15,23 @@ export class TransactionService {
     return this.http.get<Transaction[]>(`${environment.apiURL}/transaction/listAll`);
   }
 
-  getById (id: number): Observable<Transaction> {
+  getById(id: number): Observable<Transaction> {
     return this.http.get<Transaction>(`${environment.apiURL}/transaction/${id}`);
   }
 
-  search (transaction: Transaction): Observable<Transaction[]> {
+  search(transaction: Transaction): Observable<Transaction[]> {
     return this.http.post<Transaction[]>(`${environment.apiURL}/transaction/search`, transaction);
   }
 
-  save (transaction: Transaction): Observable<Transaction> {
+  save(transaction: Transaction): Observable<Transaction> {
     return this.http.post<Transaction>(`${environment.apiURL}/transaction`, transaction);
   }
 
-  update (transaction: Transaction): Observable<Transaction> {
+  update(transaction: Transaction): Observable<Transaction> {
     return this.http.put<Transaction>(`${environment.apiURL}/transaction`, transaction);
   }
 
-  delete (id?: number): Observable<Boolean> {
+  delete(id?: number): Observable<Boolean> {
     return this.http.delete<Boolean>(`${environment.apiURL}/transaction/${id}`);
   }
 
