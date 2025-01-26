@@ -11,6 +11,7 @@ import { Transaction } from 'src/app/shared/model/transaction.model';
 import { TransactionService } from 'src/app/shared/service/transaction.service';
 import { Table } from 'primeng/table';
 import { Classifier } from 'src/app/shared/model/classifier.model';
+import { TransactionSearchDTO } from 'src/app/shared/dto/transaction-search.dto';
 
 @Component({
   selector: 'app-transaction-form',
@@ -28,14 +29,14 @@ export class TransactionFormComponent implements OnInit {
   ) { }
 
   loading = false;
-  isEdit: boolean = false;
+  editMode: boolean = false;
   isProduct: boolean = false;
 
   transactionList: Transaction[] = [];
 
   modelRegister: Transaction = new Transaction();
 
-  modelSearch: Transaction = new Transaction();
+  modelSearch: TransactionSearchDTO = new TransactionSearchDTO();
 
   transactionTypes: Classifier[] = [];
 
@@ -43,7 +44,7 @@ export class TransactionFormComponent implements OnInit {
 
   cols: any[] = [];
 
-  @ViewChild('formRegister', { static: false }) formRegister: NgForm | undefined;
+  @ViewChild('formRegister', { static: false }) formRegister?: NgForm;
   @ViewChild('dt', { static: false }) dt?: Table;
 
   ngOnInit(): void {
@@ -61,6 +62,7 @@ export class TransactionFormComponent implements OnInit {
     this.loadTransactionsCategories();
     this.resetSearchForm();
     this.resetFormRegister();
+    this.loadTransactions();
   }
 
   loadTransactions() {
@@ -88,23 +90,21 @@ export class TransactionFormComponent implements OnInit {
     })
   }
   resetSearchForm() {
-      this.loadTransactions();
       this.modelSearch =  new Transaction();
   }
 
   search(event: any) {
-
-      this.transactionService.search(this.modelSearch).pipe(first()).subscribe(data => {
-          this.transactionList = data;
-      }, error => {
-          this.messageService.add({ severity: 'error', summary: 'Erro', detail: error });
+      this.transactionService.search((event && event.data) ? event.data : this.modelSearch).subscribe({
+        next: (v) => this.transactionList = v,
+        error: (e) => console.error(e),
+        complete: () => console.log("search complete"),
       });
   }
 
   edit(event: any) {
       let menu = event.data;
       this.resetFormRegister();
-      this.isEdit = true;
+      this.editMode = true;
 
       this.transactionService.getById(menu.id).pipe(first()).subscribe(data => {
           this.modelRegister = data;
@@ -113,7 +113,7 @@ export class TransactionFormComponent implements OnInit {
       });
   }
 
-  remove(transaction: Transaction) {
+  removeOpenDialog(transaction: Transaction) {
       this.confirmationService.confirm({
           message: `Deseja remover ${transaction.description}?`,
           header: 'Excluir registro',
@@ -163,14 +163,14 @@ export class TransactionFormComponent implements OnInit {
   }
   resetFormRegister() {
       this.modelRegister = new Transaction();
-      this.isEdit = false;
+      this.editMode = false;
       this.isProduct = false;
       this.formRegister && this.formRegister.reset();
   }
 
   resetFormRegisterAndLoadTransactions(){
-    this.loadTransactions();
-    this.resetFormRegister();
+      this.loadTransactions();
+      this.resetFormRegister();
   }
 
 }

@@ -24,16 +24,16 @@
                       </div>
                       <div class="field col-4">
                           <label for="searchByType" class="formTitle">Tipo <span class="text-danger">*</span></label>
-                          <p-dropdown [options]="this.transactionTypes" [filter]="true" [autoDisplayFirst]="false"
+                          <p-dropdown [options]="this.transactionTypes" dataKey="id" [filter]="true" [autoDisplayFirst]="false"
                               [(ngModel)]="modelSearch.typeCla" name="searchByType" optionLabel="label"
-                              [showClear]="false" optionValue="value" placeholder="Selecione um Tipo" class="w-full"
+                              [showClear]="true" placeholder="Selecione um Tipo" class="w-full"
                               ></p-dropdown>
                       </div>
                       <div class="field col-4">
                         <label for="searchByCategory" class="formTitle">Categoria <span class="text-danger">*</span></label>
-                        <p-dropdown [options]="this.transactionCategories" [filter]="true" [autoDisplayFirst]="false"
+                        <p-dropdown [options]="this.transactionCategories" dataKey="id" [filter]="true" [autoDisplayFirst]="false"
                             [(ngModel)]="modelSearch.categoryCla" name="searchByCategory" optionLabel="label"
-                            [showClear]="false" optionValue="value" placeholder="Selecione uma Categoria" class="w-full"
+                            [showClear]="true" placeholder="Selecione uma Categoria" class="w-full"
                             ></p-dropdown>
                     </div>
                       <div class="field col-4">
@@ -145,7 +145,7 @@
                               pButton (click)="resetFormRegister()"></button>
                           <button type="button" label="Excluir" icon="pi pi-trash"
                               class="p-button-outlined p-button-danger mr-3 md:w-10rem" *ngIf="modelRegister.id"
-                              pButton (click)="remove(modelRegister)"></button>
+                              pButton (click)="removeOpenDialog(modelRegister)"></button>
                           <button type="button" label="Novo" icon="pi pi-file" pButton
                               class="p-button-outlined p-button-secondary mr-3 md:w-10rem"
                               (click)="resetFormRegister()"></button>
