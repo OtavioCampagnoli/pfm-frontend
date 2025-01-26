@@ -12,23 +12,27 @@ export class TransactionService {
   constructor(private http: HttpClient) { }
 
   listAll(): Observable<Transaction[]> {
-    return this.http.get<Transaction[]>(`${environment.apiURL}/api/transaction/listAll`);
+    return this.http.get<Transaction[]>(`${environment.apiURL}/transaction/listAll`);
   }
 
-  getById (id: number): Observable<Transaction> {
-    return this.http.get<Transaction>(`${environment.apiURL}/api/transaction/${id}`);
+  getById(id: number): Observable<Transaction> {
+    return this.http.get<Transaction>(`${environment.apiURL}/transaction/${id}`);
   }
 
-  search (transaction: Transaction): Observable<Transaction[]> {
-    return this.http.post<Transaction[]>(`${environment.apiURL}/api/transaction/search`, transaction);
+  search(transaction: Transaction): Observable<Transaction[]> {
+    return this.http.post<Transaction[]>(`${environment.apiURL}/transaction/search`, transaction);
   }
 
-  save (transaction: Transaction): Observable<Transaction> {
-    return this.http.post<Transaction>(`${environment.apiURL}/api/transaction`, transaction);
+  save(transaction: Transaction): Observable<Transaction> {
+    return this.http.post<Transaction>(`${environment.apiURL}/transaction`, transaction);
   }
 
-  delete (id?: number): Observable<Boolean> {
-    return this.http.delete<Boolean>(`${environment.apiURL}/api/transaction/${id}`);
+  update(transaction: Transaction): Observable<Transaction> {
+    return this.http.put<Transaction>(`${environment.apiURL}/transaction`, transaction);
+  }
+
+  delete(id?: number): Observable<Boolean> {
+    return this.http.delete<Boolean>(`${environment.apiURL}/transaction/${id}`);
   }
 
 }

@@ -1,16 +1,17 @@
+import { ClassifierService } from './../../shared/service/classifier.service';
 import { NgForm } from '@angular/forms';
 import { Component, OnInit, ViewChild } from '@angular/core';
 
 import { first } from 'rxjs/operators';
 
-import { ConfirmationService, MessageService, MenuItem } from 'primeng/api';
+import { ConfirmationService, MessageService } from 'primeng/api';
 
 import { Transaction } from 'src/app/shared/model/transaction.model';
 
-import { TransactionType, TransactionTypeLabelMap } from 'src/app/shared/enum/transactionType.enum';
-import { TransactionCategory } from 'src/app/shared/enum/transactionCategory.enum';
 import { TransactionService } from 'src/app/shared/service/transaction.service';
-
+import { Table } from 'primeng/table';
+import { Classifier } from 'src/app/shared/model/classifier.model';
+import { TransactionSearchDTO } from 'src/app/shared/dto/transaction-search.dto';
 
 @Component({
   selector: 'app-transaction-form',
@@ -23,83 +24,87 @@ export class TransactionFormComponent implements OnInit {
 
   constructor(private transactionService: TransactionService,
     private messageService: MessageService,
-    private confirmationService: ConfirmationService
+    private confirmationService: ConfirmationService,
+    private classifierService: ClassifierService
   ) { }
 
   loading = false;
-  isEdit: boolean = false;
+  editMode: boolean = false;
   isProduct: boolean = false;
 
   transactionList: Transaction[] = [];
 
   modelRegister: Transaction = new Transaction();
 
-  modelSearch: Transaction = new Transaction();
+  modelSearch: TransactionSearchDTO = new TransactionSearchDTO();
 
-  transactionTypes: { label: string, value: string }[] = [];
+  transactionTypes: Classifier[] = [];
 
-  transactionCategories: { label: string, value: string }[] = [];
+  transactionCategories: Classifier[] = [];
 
   cols: any[] = [];
 
-  @ViewChild('formRegister', { static: false }) formRegister: NgForm | undefined;
-  @ViewChild('dt', { static: false }) dt: any;
+  @ViewChild('formRegister', { static: false }) formRegister?: NgForm;
+  @ViewChild('dt', { static: false }) dt?: Table;
 
   ngOnInit(): void {
 
     this.cols = [
       { field: 'description', header: 'Descrição' },
       { field: 'amount', header: 'Valor' },
-      { field: 'category', header: 'Categoria' },
-      { field: 'type', header: 'Tipo' },
+      { field: 'categoryCla', header: 'Categoria' },
+      { field: 'typeCla', header: 'Tipo' },
       { field: 'date', header: 'Data' },
       { field: 'createdAt', header: 'Criado em' }
     ];
 
-    this.transactionTypes = [
-      { label: 'Receita', value: 'INCOME' },
-      { label: 'Despesa', value: 'EXPENSE' }
-    ];
-
-    this.transactionCategories = [
-      { label: 'Alimentação', value: 'FOOD' },
-      { label: 'Transporte', value: 'TRANSPORT' },
-      { label: 'Salário', value: 'SALARY' },
-      { label: 'Entretenimento', value: 'ENTERTAINMENT' },
-      { label: 'Saúde', value: 'HEALTH' },
-      { label: 'Outro', value: 'OTHER' }
-    ];
-
+    this.loadTransactionsTypes();
+    this.loadTransactionsCategories();
     this.resetSearchForm();
-    this.resetformRegister();
+    this.resetFormRegister();
+    this.loadTransactions();
   }
 
   loadTransactions() {
-      this.transactionService.listAll().pipe(first()).subscribe(data => {
-          this.transactionList = data;
-      }, error => {
-          this.messageService.add({severity: 'error', summary: 'Erro', detail: error });
-      });
+      this.transactionService.listAll().subscribe({
+        next: (v) => this.transactionList = v,
+        error: (e) => this.messageService.add({severity: 'error', summary: 'Erro', detail: e }),
+        complete: () => console.log('complete')
+      })
   }
 
+  loadTransactionsTypes() {
+    this.classifierService.listAllByType("TRANSACTION_TYPE").subscribe({
+      next: (v) => this.transactionTypes = v,
+      error: (e) => this.messageService.add({severity: 'error', summary: 'Erro', detail: e }),
+      complete: () => console.log('complete')
+
+    })
+  }
+
+  loadTransactionsCategories() {
+    this.classifierService.listAllByType("TRANSACTION_CATEGORY").subscribe({
+      next: (v) => this.transactionCategories = v,
+      error: (e) => console.error(e),
+      complete: () => console.log('complete')
+    })
+  }
   resetSearchForm() {
-      this.loadTransactions();
       this.modelSearch =  new Transaction();
   }
 
   search(event: any) {
-
-      this.transactionService.search(this.modelSearch).pipe(first()).subscribe(data => {
-          this.transactionList = data;
-      }, error => {
-          this.messageService.add({ severity: 'error', summary: 'Erro', detail: error });
+      this.transactionService.search((event && event.data) ? event.data : this.modelSearch).subscribe({
+        next: (v) => this.transactionList = v,
+        error: (e) => console.error(e),
+        complete: () => console.log("search complete"),
       });
   }
 
   edit(event: any) {
       let menu = event.data;
-      this.resetformRegister();
-      this.isEdit = true;
+      this.resetFormRegister();
+      this.editMode = true;
 
       this.transactionService.getById(menu.id).pipe(first()).subscribe(data => {
           this.modelRegister = data;
@@ -108,92 +113,64 @@ export class TransactionFormComponent implements OnInit {
       });
   }
 
-  remove(transaction: Transaction) {
-    debugger
+  removeOpenDialog(transaction: Transaction) {
       this.confirmationService.confirm({
           message: `Deseja remover ${transaction.description}?`,
           header: 'Excluir registro',
           acceptLabel: 'Confirmar',
           rejectLabel: 'Cancelar',
           accept: () => {
-              this.transactionService.delete(transaction.id).pipe(first()).subscribe(data => {
-                  if (data) {
-                      this.messageService.add({ severity: 'info', summary: 'Removido com sucesso', detail: 'Registro removido com sucesso!' });
-                      this.resetSearchForm();
-                      this.resetformRegister();
-                  }
-              }, error => {
-                  this.messageService.add({ key: 'tst', severity: 'error', summary: 'Erro', detail: error });
-              });
+              this.delete(transaction);
           }
       });
   }
 
-  save() {
-      this.transactionService.save(this.modelRegister).pipe(first()).subscribe(data => {
-          this.messageService.add({ severity: 'success', summary: 'Salvo com sucesso', detail: `Registro adicionado com sucesso!` });
-          this.resetSearchForm();
-          this.resetformRegister();
-      }, error => {
-          this.messageService.add({ severity: 'error', summary: 'Erro', detail: error });
-      });
+  delete(transaction: Transaction) {
+    this.transactionService.delete(transaction.id).subscribe({
+      next: (v) => {
+        this.messageService.add({severity:'success', summary: 'Removido com sucesso', detail: 'Transação removida com sucesso.'})
+        this.resetFormRegisterAndLoadTransactions();
+      },
+      error: (e) => this.messageService.add({severity:'error', summary: 'Erro ao remover', detail: 'Ocorreu um erro ao remover a transação.'}),
+      complete: () => console.log("delete complete")
+    })
   }
 
-  resetformRegister() {
+  saveOrUpdate() {
+      (this.modelRegister && this.modelRegister.id) ? this.update() : this.save();
+  }
+
+  save() {
+      this.transactionService.save(this.modelRegister).subscribe({
+        next: (v) => {
+          this.messageService.add({severity: 'success', summary: "Salvo com sucesso", detail: `Transação criada com sucesso.`})
+          this.resetFormRegisterAndLoadTransactions();
+        },
+        error: (e) => this.messageService.add({severity: 'error', summary: "Erro ao salvar", detail: `Ocorreu um erro ao criar a transação.` }),
+        complete: () => console.log("save complete")
+      })
+  }
+
+  update(){
+      this.transactionService.update(this.modelRegister).subscribe({
+        next: (v) => {
+          this.messageService.add({severity: 'success', summary: "Atualizado com sucesso", detail: `Transação atualizada com sucesso.`})
+          this.resetFormRegisterAndLoadTransactions();
+        },
+        error: (e) => this.messageService.add({severity: 'error', summary: "Erro ao salvar", detail: `Ocorreu um erro ao atualizar a transação.` }),
+        complete: () => console.log("update complete")
+      })
+  }
+  resetFormRegister() {
       this.modelRegister = new Transaction();
-      this.isEdit = false;
+      this.editMode = false;
       this.isProduct = false;
       this.formRegister && this.formRegister.reset();
   }
 
-  translateCategory(category: string): string {
-    let value: string = '';
-
-    const categoryEnum = TransactionCategory[category as keyof typeof TransactionCategory];
-
-    switch (categoryEnum) {
-      case TransactionCategory.ENTERTAINMENT:
-        value = 'Entretenimento';
-        break;
-      case TransactionCategory.FOOD:
-        value = 'Alimentação';
-        break;
-      case TransactionCategory.HEALTH:
-        value = 'Saúde';
-        break;
-      case TransactionCategory.OTHER:
-        value = 'Outro';
-        break;
-      case TransactionCategory.SALARY:
-        value = 'Salário';
-        break;
-      case TransactionCategory.TRANSPORT:
-        value = 'Transporte';
-        break;
-      default:
-        value = '';
-    }
-
-    return value.toUpperCase();
-  }
-
-  translateType(type: string) {
-    let value: string = '';
-
-    const typeEnum = TransactionType[type as keyof typeof TransactionType];
-
-    switch (typeEnum) {
-      case TransactionType.EXPENSE:
-        value = 'Despesa';
-        break;
-      case TransactionType.INCOME:
-        value = 'Renda';
-        break;
-      default:
-        value = '';
-    }
-
-    return value.toUpperCase();
+  resetFormRegisterAndLoadTransactions(){
+      this.loadTransactions();
+      this.resetFormRegister();
   }
 
 }
